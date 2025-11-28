@@ -189,8 +189,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #e0e0e0;
-            font-size: 1.8rem;
+            color: #a5b8c5ff;
+            font-size: .8rem;
             cursor: pointer;
             transition: 0.2s;
             min-height: 100%;
@@ -484,6 +484,27 @@
     ];
     let data = { classes: [], teachers: [], subjects: [], rooms: [], schedule: [] };
 
+    const CLASS_COLORS = [
+        { bg: '#ffebee', border: '#ef5350' }, // Red (1A/ID 1)
+        { bg: '#e3f2fd', border: '#42a5f5' }, // Blue
+        { bg: '#e8f5e9', border: '#66bb6a' }, // Green
+        { bg: '#fff3e0', border: '#ffa726' }, // Orange
+        { bg: '#f3e5f5', border: '#ab47bc' }, // Purple
+        { bg: '#e0f7fa', border: '#26c6da' }, // Cyan
+        { bg: '#fff8e1', border: '#ffca28' }, // Yellow
+        { bg: '#eceff1', border: '#78909c' }, // Grey
+        { bg: '#fce4ec', border: '#ec407a' }, // Pink
+        { bg: '#f9fbe7', border: '#d4e157' }  // Lime
+    ];
+
+    function getClassStyle(classId) {
+        // Use modulus to cycle through colors if ID > colors length
+        // We subtract 1 assuming IDs start at 1, to use index 0 first
+        const index = (classId - 1) % CLASS_COLORS.length;
+        // Fallback if ID is weird
+        return CLASS_COLORS[index] || CLASS_COLORS[0];
+    }
+
     // --- INIT ---
     window.onload = async () => {
         // Fill hours select in modal
@@ -614,12 +635,17 @@
                         const cls = data.classes.find(x=>x.id==l.classId)?.name || '?';
                         
                         const compactClass = isAll ? 'compact' : '';
-                        const badge = isAll ? `<span class="lesson-badge">${cls}</span>` : '';
+
+                        const styleObj = getClassStyle(l.classId);
+                        const styleStr = `background-color: ${styleObj.bg}; border-left-color: ${styleObj.border};`;
+                        
+                        // Badge inherits the border color for consistency
+                        const badgeStyle = `border-color: ${styleObj.border}; color: #333; background: rgba(255,255,255,0.6);`;
+                        const badge = isAll ? `<span class="lesson-badge" style="${badgeStyle}">${cls}</span>` : '';
 
                         row += `
-                        <div class="lesson-card ${compactClass}" onclick="editLesson(${l.id})">
-                            ${badge}
-                            <div>
+                        <div class="lesson-card ${compactClass}" onclick="editLesson(${l.id})" style="${styleStr}">
+                    ${badge}                            <div>
                                 <span class="lesson-subject">${sub}</span>
                                 <span class="lesson-teacher"><i class="fas fa-user-tie me-1"></i>${tea}</span>
                             </div>
@@ -638,7 +664,7 @@
                     // row += `<div class="empty-slot small..." ...></div>` // optional: allow adding 2nd lesson
                 } else if (isAll) {
                     // In ALL view, we allow adding via empty slot space
-                    row += `<div class="empty-slot" style="min-height:30px; font-size:1rem; opacity:0.1;" onclick="quickAdd(${d}, ${h.id})"><i class="fas fa-plus"></i></div>`;
+                    row += `<div class="empty-slot" style="min-height:30px; font-size:1rem; opacity:0.5;" onclick="quickAdd(${d}, ${h.id})"><i class="fas fa-plus"></i></div>`;
                 }
 
                 row += `</div></td>`;
