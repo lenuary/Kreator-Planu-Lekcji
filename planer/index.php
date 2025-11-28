@@ -9,108 +9,353 @@
     <!-- FontAwesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* (Twoje style CSS - bez zmian, skopiowane dla kompletności) */
-        :root { --primary-color: #2c3e50; --secondary-color: #34495e; --accent-color: #3498db; --bg-light: #f8f9fa; }
+        :root { 
+            --primary-color: #2c3e50; 
+            --secondary-color: #34495e; 
+            --accent-color: #3498db; 
+            --bg-light: #f4f6f9; /* Trochę ciemniejszy dla kontrastu */
+        }
         body { background-color: var(--bg-light); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; }
-        #sidebar-wrapper { min-height: 100vh; margin-left: -15rem; transition: margin .25s ease-out; background-color: var(--primary-color); color: white; position: fixed; z-index: 1000; width: 15rem; }
-        #sidebar-wrapper .sidebar-heading { padding: 1.5rem; font-size: 1.2rem; font-weight: bold; background-color: var(--secondary-color); text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        #sidebar-wrapper .list-group-item { background-color: transparent; color: #ecf0f1; border: none; padding: 1rem 1.5rem; cursor: pointer; width: 100%; text-align: left; }
-        #sidebar-wrapper .list-group-item:hover { background-color: rgba(255,255,255,0.1); padding-left: 2rem; }
-        #sidebar-wrapper .list-group-item.active { background-color: var(--accent-color); border-left: 4px solid white; }
+        
+        /* --- LAYOUT --- */
+        #wrapper { display: flex; width: 100%; overflow-x: hidden; }
+        #sidebar-wrapper { min-height: 100vh; margin-left: -16rem; transition: margin .25s ease-out; background-color: var(--primary-color); color: white; width: 16rem; position: fixed; z-index: 1000; height: 100%; overflow-y: auto;}
+        #sidebar-wrapper .sidebar-heading { padding: 1.2rem; font-size: 1.1rem; font-weight: bold; background-color: rgba(0,0,0,0.2); text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        #sidebar-wrapper .list-group-item { background-color: transparent; color: #ecf0f1; border: none; padding: 1rem 1.5rem; cursor: pointer; }
+        #sidebar-wrapper .list-group-item:hover { background-color: rgba(255,255,255,0.1); padding-left: 2rem; transition: 0.2s; }
+        #sidebar-wrapper .list-group-item.active { background-color: var(--accent-color); border-left: 5px solid white; font-weight: 600; }
+        
+        #page-content-wrapper { width: 100%; margin-left: 0; transition: margin .25s ease-out; }
+        
         #wrapper.toggled #sidebar-wrapper { margin-left: 0; }
-        #page-content-wrapper { width: 100%; padding-left: 15rem; transition: padding .25s ease-out; position: relative; z-index: 1; }
-        @media (max-width: 768px) { #sidebar-wrapper { margin-left: -15rem; } #page-content-wrapper { padding-left: 0; } #wrapper.toggled #sidebar-wrapper { margin-left: 0; } }
-        .stat-card { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s; }
-        .stat-card:hover { transform: translateY(-5px); }
-        .stat-icon { font-size: 2.5rem; opacity: 0.3; }
-        .schedule-table th { background-color: var(--primary-color); color: white; text-align: center; vertical-align: middle; font-weight: 500; }
-        .col-hour { width: 10%; } .col-day { width: 18%; }
-        .schedule-table td { height: 140px; vertical-align: top; padding: 0; background-color: white; border: 1px solid #dee2e6; position: relative; }
-        .lesson-card { background-color: #e3f2fd; border-left: 4px solid var(--accent-color); padding: 8px; margin: 4px; border-radius: 4px; font-size: 0.8rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s; position: relative; height: calc(100% - 8px); overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; z-index: 5; }
-        .lesson-card:hover { background-color: #bbdefb; transform: scale(1.02); z-index: 10; }
-        .lesson-time { font-size: 0.75rem; font-weight: bold; color: var(--accent-color); margin-bottom: 2px; }
-        .lesson-subject { font-weight: 700; font-size: 0.95rem; color: #2c3e50; margin-bottom: 2px; line-height: 1.2; }
-        .lesson-teacher { font-size: 0.8rem; color: #34495e; margin-bottom: 4px; }
-        .lesson-meta { font-size: 0.75rem; color: #7f8c8d; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 4px; margin-top: auto; display: flex; justify-content: space-between; background-color: rgba(255,255,255,0.3); border-radius: 2px; padding: 2px 4px; }
-        .lesson-action-btn { position: absolute; top: 2px; right: 5px; color: #e74c3c; opacity: 0.6; cursor: pointer; z-index: 20; padding: 4px; transition: opacity 0.2s; background: rgba(255,255,255,0.7); border-radius: 50%; }
-        .lesson-card:hover .lesson-action-btn { opacity: 1; }
-        .empty-slot { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; color: #e0e0e0; font-size: 2rem; cursor: pointer; transition: all 0.2s; background-color: transparent; position: relative; z-index: 1; }
-        .empty-slot:hover { background-color: #f1f8ff; color: var(--accent-color); }
+        #wrapper.toggled #page-content-wrapper { margin-left: 16rem; } /* Pycha treść */
+
+        /* Responsive - na małych ekranach sidebar chowany */
+        @media (max-width: 768px) {
+            #sidebar-wrapper { margin-left: -16rem; }
+            #page-content-wrapper { margin-left: 0; }
+            #wrapper.toggled #sidebar-wrapper { margin-left: 0; }
+            #wrapper.toggled #page-content-wrapper { margin-left: 0; position: relative; } /* Overlay styled instead if needed */
+        }
+
+        /* --- STAT CARDS --- */
+        .stat-card { border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.2s; overflow: hidden; }
+        .stat-card:hover { transform: translateY(-3px); }
+        .stat-icon { font-size: 3rem; opacity: 0.2; position: absolute; right: 15px; bottom: 10px; }
+        .card-body { position: relative; z-index: 2; }
+
+        /* --- TABLE FIXES (CRITICAL) --- */
+        .schedule-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden; /* prevents spillover */
+        }
+
+        .schedule-table {
+            table-layout: fixed; /* To naprawia szerokości! */
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .schedule-table th {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: 600;
+            padding: 12px 5px;
+            border: 1px solid #34495e;
+        }
+
+        /* Ustawienie szerokości kolumn */
+        .col-hour { width: 90px; } /* Stała szerokość godziny */
+        /* Pozostałe 5 kolumn (dni) podzieli się resztą miejsca po równo */
+
+        .schedule-table td {
+            height: 130px; /* Minimalna wysokość komórki */
+            vertical-align: top;
+            padding: 0; /* Padding jest wewnątrz cell-wrap */
+            border: 1px solid #dee2e6;
+            background-color: #fff;
+        }
+
+        /* Wewnętrzny kontener komórki - to on obsługuje Flexbox */
+        .cell-wrap {
+            width: 100%;
+            height: 100%;
+            min-height: 130px;
+            padding: 4px;
+            display: flex;
+            flex-wrap: wrap; /* Pozwala kafelkom spadać niżej */
+            align-content: flex-start; /* Kafelki zaczynają od góry */
+            gap: 4px;
+            overflow-y: auto; /* Scrollbar, jeśli lekcji jest za dużo */
+        }
+
+        /* --- LESSON CARDS --- */
+        .lesson-card {
+            background-color: #f0f7ff;
+            border-left: 4px solid var(--accent-color);
+            border-radius: 4px;
+            padding: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+            width: 100%; /* Domyślnie zajmuje całą szerokość */
+            min-height: 65px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .lesson-card:hover {
+            background-color: #e3efff;
+            transform: scale(1.02);
+            z-index: 5;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        /* Styl dla widoku "Wszystkie klasy" */
+        .lesson-card.compact {
+            /* Na dużych ekranach 2 obok siebie, na mniejszych 1 */
+            width: 100%; 
+            font-size: 0.85em; /* Nieco mniejsza czcionka */
+            border-left-width: 3px;
+        }
+        
+        /* Responsywność kafelków wewnątrz komórki */
+        @media (min-width: 1400px) {
+            /* Na bardzo szerokich ekranach, w widoku "Wszystkie", kafelki 2 w rzędzie */
+            .lesson-card.compact {
+                width: calc(50% - 2px); 
+            }
+        }
+
+        .lesson-subject {
+            font-weight: 700;
+            color: #2c3e50;
+            display: block;
+            line-height: 1.2;
+            margin-bottom: 2px;
+            font-size: 1.05em;
+        }
+        
+        .lesson-teacher {
+            color: #555;
+            font-size: 0.9em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lesson-badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 0.7em;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .lesson-room {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .lesson-delete {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            color: #e74c3c;
+            opacity: 0;
+            transition: 0.2s;
+            padding: 2px;
+        }
+        .lesson-card:hover .lesson-delete { opacity: 1; }
+
+        /* Empty Slot */
+        .empty-slot {
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #e0e0e0;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+            min-height: 100%;
+        }
+        .empty-slot:hover {
+            background-color: rgba(52, 152, 219, 0.05);
+            color: var(--accent-color);
+        }
+
+        /* Godziny */
+        .hour-cell {
+            background-color: #f8f9fa;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: bold;
+            color: #555;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .hour-num { font-size: 1.2em; display: block; margin-bottom: 4px; color: var(--primary-color); }
+        .hour-range { font-size: 0.75em; color: #777; display: block; }
+
     </style>
 </head>
 <body>
 
 <div class="d-flex toggled" id="wrapper">
     <!-- Sidebar -->
-    <div class="bg-dark border-right" id="sidebar-wrapper">
+    <div id="sidebar-wrapper">
         <div class="sidebar-heading"><i class="fas fa-graduation-cap me-2"></i>Szkolny Planer</div>
         <div class="list-group list-group-flush">
-            <button class="list-group-item list-group-item-action bg-dark text-light active" onclick="showSection('dashboard')"><i class="fas fa-tachometer-alt me-2"></i> Pulpit</button>
-            <button class="list-group-item list-group-item-action bg-dark text-light" onclick="showSection('schedule')"><i class="fas fa-calendar-alt me-2"></i> Plan Lekcji</button>
-            <button class="list-group-item list-group-item-action bg-dark text-light" onclick="showSection('data-mgmt')"><i class="fas fa-database me-2"></i> Dane</button>
+            <a class="list-group-item list-group-item-action active" onclick="showSection('dashboard')"><i class="fas fa-tachometer-alt me-3"></i>Pulpit</a>
+            <a class="list-group-item list-group-item-action" onclick="showSection('schedule')"><i class="fas fa-calendar-alt me-3"></i>Plan Lekcji</a>
+            <a class="list-group-item list-group-item-action" onclick="showSection('data-mgmt')"><i class="fas fa-database me-3"></i>Dane</a>
         </div>
     </div>
 
     <!-- Page Content -->
     <div id="page-content-wrapper">
-        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
-            <div class="container-fluid">
-                <button class="btn btn-primary btn-sm" id="menu-toggle"><i class="fas fa-bars"></i> Menu</button>
-                <span class="navbar-brand ms-3 fs-6 text-muted">System PHP/MySQL v1.0</span>
-            </div>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm px-4">
+            <button class="btn btn-outline-primary btn-sm me-3" id="menu-toggle"><i class="fas fa-bars"></i></button>
+            <span class="navbar-brand fs-6 fw-bold text-secondary">Panel Administratora v2.1 (Fix Layout)</span>
         </nav>
 
         <div class="container-fluid p-4">
+            
             <!-- DASHBOARD -->
             <div id="section-dashboard" class="content-section">
-                <h2 class="mb-4">Przegląd systemu</h2>
-                <div class="row">
-                    <div class="col-md-3 mb-4"><div class="card stat-card bg-primary text-white h-100"><div class="card-body d-flex justify-content-between align-items-center"><div><h5 class="card-title">Klasy</h5><h2 class="display-4" id="count-classes">0</h2></div><i class="fas fa-users stat-icon"></i></div></div></div>
-                    <div class="col-md-3 mb-4"><div class="card stat-card bg-success text-white h-100"><div class="card-body d-flex justify-content-between align-items-center"><div><h5 class="card-title">Nauczyciele</h5><h2 class="display-4" id="count-teachers">0</h2></div><i class="fas fa-chalkboard-teacher stat-icon"></i></div></div></div>
-                    <div class="col-md-3 mb-4"><div class="card stat-card bg-warning text-dark h-100"><div class="card-body d-flex justify-content-between align-items-center"><div><h5 class="card-title">Przedmioty</h5><h2 class="display-4" id="count-subjects">0</h2></div><i class="fas fa-book stat-icon"></i></div></div></div>
-                    <div class="col-md-3 mb-4"><div class="card stat-card bg-info text-white h-100"><div class="card-body d-flex justify-content-between align-items-center"><div><h5 class="card-title">Lekcje</h5><h2 class="display-4" id="count-entries">0</h2></div><i class="fas fa-calendar-check stat-icon"></i></div></div></div>
+                <h3 class="mb-4 text-gray-800">Pulpit</h3>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="card stat-card bg-primary text-white h-100">
+                            <div class="card-body">
+                                <h6 class="card-title text-white-50">Klasy</h6>
+                                <h2 class="display-5 fw-bold mb-0" id="count-classes">0</h2>
+                                <i class="fas fa-users stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card bg-success text-white h-100">
+                            <div class="card-body">
+                                <h6 class="card-title text-white-50">Nauczyciele</h6>
+                                <h2 class="display-5 fw-bold mb-0" id="count-teachers">0</h2>
+                                <i class="fas fa-chalkboard-teacher stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card bg-warning text-dark h-100">
+                            <div class="card-body">
+                                <h6 class="card-title text-black-50">Przedmioty</h6>
+                                <h2 class="display-5 fw-bold mb-0" id="count-subjects">0</h2>
+                                <i class="fas fa-book stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card bg-info text-white h-100">
+                            <div class="card-body">
+                                <h6 class="card-title text-white-50">Lekcje</h6>
+                                <h2 class="display-5 fw-bold mb-0" id="count-entries">0</h2>
+                                <i class="fas fa-calendar-check stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="alert alert-success shadow-sm">
-                    <h4><i class="fas fa-database"></i> Połączono z bazą danych</h4>
-                    <p class="mb-0">Aplikacja działa w trybie online. Wszystkie zmiany są zapisywane w bazie MySQL.</p>
-                    <hr>
-                    <button class="btn btn-outline-danger btn-sm" onclick="askClearData()">Wyczyść całą bazę danych</button>
+                
+                <div class="alert alert-light border shadow-sm">
+                    <h5><i class="fas fa-server text-success"></i> Status Połączenia</h5>
+                    <p class="text-muted">Połączono z bazą danych MySQL. Wszystkie zmiany są zapisywane automatycznie.</p>
+                    <button class="btn btn-outline-danger btn-sm" onclick="askClearData()">Resetuj bazę danych</button>
                 </div>
             </div>
 
-            <!-- DATA MANAGEMENT -->
+            <!-- DATA MGMT -->
             <div id="section-data-mgmt" class="content-section d-none">
-                <h2 class="mb-4">Zarządzanie danymi</h2>
-                <ul class="nav nav-tabs mb-3" id="dataTab" role="tablist">
-                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#classes-content">Klasy</button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#teachers-content">Nauczyciele</button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#subjects-content">Przedmioty</button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#rooms-content">Sale</button></li>
-                </ul>
-                <div class="tab-content">
-                    <!-- Templates for Data Tabs -->
-                    <div class="tab-pane fade show active" id="classes-content">
-                        <div class="row">
-                            <div class="col-md-4"><div class="card shadow-sm"><div class="card-header bg-light">Dodaj Klasę</div><div class="card-body"><form onsubmit="addItem(event, 'classes', 'class-name')"><div class="mb-3"><label class="form-label">Nazwa</label><input type="text" class="form-control" id="class-name" required></div><button type="submit" class="btn btn-success w-100">Zapisz</button></form></div></div></div>
-                            <div class="col-md-8"><div class="card shadow-sm"><div class="card-header bg-light">Lista Klas</div><ul class="list-group list-group-flush" id="classes-list"></ul></div></div>
-                        </div>
+                <h3 class="mb-4">Edycja Danych</h3>
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs" id="dataTab">
+                            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#classes-tab">Klasy</a></li>
+                            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#teachers-tab">Nauczyciele</a></li>
+                            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#subjects-tab">Przedmioty</a></li>
+                            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#rooms-tab">Sale</a></li>
+                        </ul>
                     </div>
-                    <div class="tab-pane fade" id="teachers-content">
-                        <div class="row">
-                            <div class="col-md-4"><div class="card shadow-sm"><div class="card-header bg-light">Dodaj Nauczyciela</div><div class="card-body"><form onsubmit="addItem(event, 'teachers', 'teacher-name')"><div class="mb-3"><label class="form-label">Nazwisko</label><input type="text" class="form-control" id="teacher-name" required></div><button type="submit" class="btn btn-success w-100">Zapisz</button></form></div></div></div>
-                            <div class="col-md-8"><ul class="list-group list-group-flush" id="teachers-list"></ul></div>
-                        </div>
-                    </div>
-                    <div class="tab-pane fade" id="subjects-content">
-                        <div class="row">
-                            <div class="col-md-4"><div class="card shadow-sm"><div class="card-header bg-light">Dodaj Przedmiot</div><div class="card-body"><form onsubmit="addItem(event, 'subjects', 'subject-name')"><div class="mb-3"><label class="form-label">Nazwa</label><input type="text" class="form-control" id="subject-name" required></div><button type="submit" class="btn btn-success w-100">Zapisz</button></form></div></div></div>
-                            <div class="col-md-8"><ul class="list-group list-group-flush" id="subjects-list"></ul></div>
-                        </div>
-                    </div>
-                    <div class="tab-pane fade" id="rooms-content">
-                        <div class="row">
-                            <div class="col-md-4"><div class="card shadow-sm"><div class="card-header bg-light">Dodaj Salę</div><div class="card-body"><form onsubmit="addItem(event, 'rooms', 'room-name')"><div class="mb-3"><label class="form-label">Numer</label><input type="text" class="form-control" id="room-name" required></div><button type="submit" class="btn btn-success w-100">Zapisz</button></form></div></div></div>
-                            <div class="col-md-8"><ul class="list-group list-group-flush" id="rooms-list"></ul></div>
+                    <div class="card-body">
+                        <div class="tab-content">
+                            <!-- Helper function fills this, structure is same for all -->
+                            <div class="tab-pane active" id="classes-tab">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <form onsubmit="addItem(event, 'classes', 'class-name')" class="p-3 bg-light rounded border">
+                                            <label class="form-label fw-bold">Nowa Klasa</label>
+                                            <div class="input-group mb-2">
+                                                <input type="text" class="form-control" id="class-name" placeholder="np. 1A" required>
+                                                <button class="btn btn-success" type="submit"><i class="fas fa-plus"></i></button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-8"><ul class="list-group" id="classes-list"></ul></div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="teachers-tab">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <form onsubmit="addItem(event, 'teachers', 'teacher-name')" class="p-3 bg-light rounded border">
+                                            <label class="form-label fw-bold">Nowy Nauczyciel</label>
+                                            <div class="input-group mb-2">
+                                                <input type="text" class="form-control" id="teacher-name" placeholder="Imię Nazwisko" required>
+                                                <button class="btn btn-success" type="submit"><i class="fas fa-plus"></i></button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-8"><ul class="list-group" id="teachers-list"></ul></div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="subjects-tab">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <form onsubmit="addItem(event, 'subjects', 'subject-name')" class="p-3 bg-light rounded border">
+                                            <label class="form-label fw-bold">Nowy Przedmiot</label>
+                                            <div class="input-group mb-2">
+                                                <input type="text" class="form-control" id="subject-name" placeholder="Nazwa" required>
+                                                <button class="btn btn-success" type="submit"><i class="fas fa-plus"></i></button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-8"><ul class="list-group" id="subjects-list"></ul></div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="rooms-tab">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <form onsubmit="addItem(event, 'rooms', 'room-name')" class="p-3 bg-light rounded border">
+                                            <label class="form-label fw-bold">Nowa Sala</label>
+                                            <div class="input-group mb-2">
+                                                <input type="text" class="form-control" id="room-name" placeholder="Numer" required>
+                                                <button class="btn btn-success" type="submit"><i class="fas fa-plus"></i></button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-8"><ul class="list-group" id="rooms-list"></ul></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -118,134 +363,201 @@
 
             <!-- SCHEDULE -->
             <div id="section-schedule" class="content-section d-none">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2>Plan Lekcji</h2>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="mb-0">Plan Lekcji</h3>
                     <div class="d-flex gap-2">
-                        <select class="form-select" id="schedule-class-filter" onchange="renderSchedule()">
-                            <option value="">-- Wybierz klasę --</option>
+                        <select class="form-select border-primary fw-bold" id="schedule-class-filter" style="min-width: 250px;" onchange="renderSchedule()">
+                            <!-- JS fills this -->
                         </select>
-                        <button class="btn btn-primary" onclick="openAddLessonModal()"><i class="fas fa-plus"></i> Dodaj lekcję</button>
+                        <button class="btn btn-primary" onclick="openAddLessonModal()"><i class="fas fa-plus me-2"></i>Dodaj Lekcję</button>
                     </div>
                 </div>
-                <div class="card shadow-sm">
-                    <div class="card-body p-0 table-responsive">
-                        <table class="table table-bordered schedule-table mb-0">
-                            <thead><tr><th class="col-hour">Godzina</th><th class="col-day">Poniedziałek</th><th class="col-day">Wtorek</th><th class="col-day">Środa</th><th class="col-day">Czwartek</th><th class="col-day">Piątek</th></tr></thead>
-                            <tbody id="schedule-body"></tbody>
+
+                <div class="schedule-card">
+                    <div class="table-responsive">
+                        <table class="table schedule-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="col-hour">Godz.</th>
+                                    <th>Poniedziałek</th>
+                                    <th>Wtorek</th>
+                                    <th>Środa</th>
+                                    <th>Czwartek</th>
+                                    <th>Piątek</th>
+                                </tr>
+                            </thead>
+                            <tbody id="schedule-body">
+                                <!-- JS fills rows -->
+                            </tbody>
                         </table>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
 
-<!-- Modal: Add/Edit Lesson -->
+<!-- Modal: Add Lesson -->
 <div class="modal fade" id="addLessonModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title" id="modalTitle">Dodaj lekcję</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold" id="modalTitle">Edycja Lekcji</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
             <div class="modal-body">
                 <form id="addLessonForm">
                     <input type="hidden" id="lesson-id">
-                    <div class="mb-3"><label class="form-label">Klasa</label><select class="form-select" id="lesson-class" required></select></div>
-                    <div class="row">
-                        <div class="col-6 mb-3"><label class="form-label">Dzień</label><select class="form-select" id="lesson-day" required><option value="1">Poniedziałek</option><option value="2">Wtorek</option><option value="3">Środa</option><option value="4">Czwartek</option><option value="5">Piątek</option></select></div>
-                        <div class="col-6 mb-3"><label class="form-label">Godzina</label><select class="form-select" id="lesson-hour" required><option value="1">1. 08:00-08:45</option><option value="2">2. 08:55-09:40</option><option value="3">3. 09:50-10:35</option><option value="4">4. 10:50-11:35</option><option value="5">5. 11:45-12:30</option><option value="6">6. 12:40-13:25</option><option value="7">7. 13:35-14:20</option><option value="8">8. 14:25-15:10</option></select></div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">KLASA</label>
+                        <select class="form-select fw-bold" id="lesson-class" required></select>
                     </div>
-                    <div class="mb-3"><label class="form-label">Przedmiot</label><select class="form-select" id="lesson-subject" required></select></div>
-                    <div class="mb-3"><label class="form-label">Nauczyciel</label><select class="form-select" id="lesson-teacher" required></select></div>
-                    <div class="row">
-                        <div class="col-6 mb-3"><label class="form-label">Typ</label><select class="form-select" id="lesson-type"><option value="Wykład">Wykład</option><option value="Laboratorium">Laboratorium</option><option value="Projekt">Projekt</option><option value="Ćwiczenia">Ćwiczenia</option></select></div>
-                        <div class="col-6 mb-3"><label class="form-label">Godziny</label><input type="text" class="form-control" id="lesson-hours" placeholder="np. 30h"></div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-muted small fw-bold">DZIEŃ</label>
+                            <select class="form-select" id="lesson-day" required>
+                                <option value="1">Poniedziałek</option>
+                                <option value="2">Wtorek</option>
+                                <option value="3">Środa</option>
+                                <option value="4">Czwartek</option>
+                                <option value="5">Piątek</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-muted small fw-bold">GODZINA</label>
+                            <select class="form-select" id="lesson-hour" required>
+                                <!-- JS fills hours -->
+                            </select>
+                        </div>
                     </div>
-                    <div class="mb-3"><label class="form-label">Sala</label><select class="form-select" id="lesson-room" required></select></div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">PRZEDMIOT</label>
+                        <select class="form-select" id="lesson-subject" required></select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">NAUCZYCIEL</label>
+                        <select class="form-select" id="lesson-teacher" required></select>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-muted small fw-bold">TYP ZAJĘĆ</label>
+                            <select class="form-select" id="lesson-type">
+                                <option value="Wykład">Wykład</option>
+                                <option value="Ćwiczenia">Ćwiczenia</option>
+                                <option value="Lab">Lab</option>
+                                <option value="Projekt">Projekt</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-muted small fw-bold">GODZINY</label>
+                            <input type="text" class="form-control" id="lesson-hours" placeholder="np. 30h">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">SALA</label>
+                        <select class="form-select" id="lesson-room" required></select>
+                    </div>
                 </form>
             </div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button><button type="button" class="btn btn-primary" onclick="saveLesson()">Zapisz</button></div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-link text-muted text-decoration-none" data-bs-dismiss="modal">Anuluj</button>
+                <button type="button" class="btn btn-primary px-4" onclick="saveLesson()">Zapisz</button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Simple Msg Modal -->
-<div class="modal fade" id="msgModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-body" id="msgBody"></div><div class="modal-footer"><button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button></div></div></div></div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // --- GLOBAL DATA STATE ---
-    let data = { classes: [], teachers: [], subjects: [], rooms: [], schedule: [] };
+    // --- CONFIG ---
     const HOURS = [
         {id: 1, label: "08:00 - 08:45"}, {id: 2, label: "08:55 - 09:40"}, {id: 3, label: "09:50 - 10:35"},
         {id: 4, label: "10:50 - 11:35"}, {id: 5, label: "11:45 - 12:30"}, {id: 6, label: "12:40 - 13:25"},
         {id: 7, label: "13:35 - 14:20"}, {id: 8, label: "14:25 - 15:10"}
     ];
+    let data = { classes: [], teachers: [], subjects: [], rooms: [], schedule: [] };
 
-    // --- API COMMUNICATION ---
+    // --- INIT ---
+    window.onload = async () => {
+        // Fill hours select in modal
+        const hSelect = document.getElementById('lesson-hour');
+        hSelect.innerHTML = HOURS.map(h => `<option value="${h.id}">${h.id}. ${h.label}</option>`).join('');
+        
+        await loadData();
+    };
+
+    // --- API ---
     async function loadData() {
         try {
-            const response = await fetch('api.php?action=get_all');
-            const result = await response.json();
-            if(result.error) throw new Error(result.error);
+            const res = await fetch('api.php?action=get_all');
+            const json = await res.json();
+            if(json.error) throw new Error(json.error);
+            data = json;
             
-            data = result;
             updateDashboard();
             renderLists();
+            updateFilterDropdown();
             
-            // If we are on schedule view, re-render it
+            // If schedule visible, re-render
             if(!document.getElementById('section-schedule').classList.contains('d-none')) {
-                updateSelectOptions('schedule-class-filter', data.classes);
                 renderSchedule();
             }
-        } catch (e) {
+        } catch(e) {
             console.error(e);
-            alert("Błąd ładowania danych z bazy: " + e.message);
+            alert("Błąd: " + e.message);
         }
+    }
+
+    function updateFilterDropdown() {
+        const sel = document.getElementById('schedule-class-filter');
+        const curr = sel.value;
+        
+        let html = `<option value="" disabled ${!curr ? 'selected' : ''}>-- Wybierz widok --</option>` +
+                   `<option value="all" ${curr === 'all' ? 'selected' : ''}>📅 Pokaż WSZYSTKIE klasy</option>` +
+                   `<option disabled>──────────</option>`;
+                   
+        html += data.classes.map(c => `<option value="${c.id}" ${curr == c.id ? 'selected' : ''}>Klasa ${c.name}</option>`).join('');
+        sel.innerHTML = html;
     }
 
     async function addItem(e, table, inputId) {
         e.preventDefault();
-        const nameVal = document.getElementById(inputId).value;
-        
-        try {
-            const res = await fetch('api.php?action=add_item', {
-                method: 'POST',
-                body: JSON.stringify({ table: table, name: nameVal })
-            });
-            const json = await res.json();
-            if(json.success) {
-                document.getElementById(inputId).value = '';
-                loadData(); // Reload all data to refresh IDs
-            }
-        } catch(e) { console.error(e); }
-    }
-
-    async function deleteItem(table, id) {
-        if(!confirm("Czy na pewno chcesz usunąć?")) return;
-        try {
-            await fetch('api.php?action=delete_item', {
-                method: 'POST',
-                body: JSON.stringify({ table: table, id: id })
-            });
-            loadData();
-        } catch(e) { console.error(e); }
-    }
-    
-    async function askClearData() {
-        if(!confirm("UWAGA: To usunie WSZYSTKIE dane z bazy. Kontynuować?")) return;
-        await fetch('api.php?action=clear_data');
+        const val = document.getElementById(inputId).value;
+        await fetch('api.php?action=add_item', { method: 'POST', body: JSON.stringify({table, name: val}) });
+        document.getElementById(inputId).value = '';
         loadData();
     }
 
-    // --- UI RENDERERS ---
-    function showSection(sectionId) {
-        document.querySelectorAll('.content-section').forEach(el => el.classList.add('d-none'));
-        document.getElementById('section-' + sectionId).classList.remove('d-none');
-        document.querySelectorAll('.list-group-item').forEach(el => el.classList.remove('active'));
-        event.currentTarget.classList.add('active');
-        if(sectionId === 'schedule') {
-            updateSelectOptions('schedule-class-filter', data.classes);
-            renderSchedule();
+    async function deleteItem(table, id) {
+        if(!confirm("Usunąć?")) return;
+        await fetch('api.php?action=delete_item', { method: 'POST', body: JSON.stringify({table, id}) });
+        loadData();
+    }
+
+    async function askClearData() {
+        if(confirm("To usunie WSZYSTKIE dane! Kontynuować?")) {
+            await fetch('api.php?action=clear_data');
+            loadData();
         }
+    }
+
+    // --- RENDERERS ---
+    function showSection(id) {
+        document.querySelectorAll('.content-section').forEach(e => e.classList.add('d-none'));
+        document.getElementById('section-'+id).classList.remove('d-none');
+        
+        // Sidebar active state
+        document.querySelectorAll('.list-group-item').forEach(e => e.classList.remove('active'));
+        // (Optional: highlight clicked link)
+        
+        if(id === 'schedule') renderSchedule();
     }
 
     function updateDashboard() {
@@ -256,92 +568,109 @@
     }
 
     function renderLists() {
-        const render = (items, listId, table) => {
-            const list = document.getElementById(listId);
-            list.innerHTML = "";
-            items.forEach(item => {
-                list.innerHTML += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        ${item.name}
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${table}', ${item.id})"><i class="fas fa-trash"></i></button>
-                    </li>`;
-            });
+        const makeList = (items, listId, table) => {
+            document.getElementById(listId).innerHTML = items.map(i => `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    ${i.name}
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${table}', ${i.id})"><i class="fas fa-trash"></i></button>
+                </li>`).join('');
         };
-        render(data.classes, 'classes-list', 'classes');
-        render(data.teachers, 'teachers-list', 'teachers');
-        render(data.subjects, 'subjects-list', 'subjects');
-        render(data.rooms, 'rooms-list', 'rooms');
+        makeList(data.classes, 'classes-list', 'classes');
+        makeList(data.teachers, 'teachers-list', 'teachers');
+        makeList(data.subjects, 'subjects-list', 'subjects');
+        makeList(data.rooms, 'rooms-list', 'rooms');
     }
 
-    function updateSelectOptions(elementId, items) {
-        const select = document.getElementById(elementId);
-        if(!select) return;
-        const currentVal = select.value;
-        let placeholder = select.options.length > 0 ? select.options[0].outerHTML : '<option value="">-- Wybierz --</option>';
-        select.innerHTML = placeholder + items.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
-        select.value = currentVal;
-    }
-
-    // --- SCHEDULE LOGIC ---
+    // --- CORE SCHEDULE LOGIC ---
     function renderSchedule() {
-        const filterClassId = document.getElementById('schedule-class-filter').value;
+        const filter = document.getElementById('schedule-class-filter').value;
         const tbody = document.getElementById('schedule-body');
         tbody.innerHTML = "";
 
-        if (!filterClassId) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">Wybierz klasę z listy.</td></tr>`;
+        if(!filter) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center p-5 text-muted bg-light"><h5>Wybierz klasę z listy powyżej ☝️</h5></td></tr>`;
             return;
         }
 
-        HOURS.forEach(hour => {
-            let rowHtml = `<tr><td class="align-middle text-center bg-light"><strong>${hour.id}</strong><br><small>${hour.label}</small></td>`;
-            for(let day=1; day<=5; day++) {
-                const lessons = data.schedule.filter(s => s.classId == filterClassId && s.day == day && s.hour == hour.id);
-                rowHtml += `<td>`;
+        const isAll = (filter === 'all');
+
+        HOURS.forEach(h => {
+            let row = `<tr>`;
+            // Hour Cell
+            row += `<td class="hour-cell"><span class="hour-num">${h.id}</span><span class="hour-range">${h.label}</span></td>`;
+            
+            for(let d=1; d<=5; d++) {
+                // Filter lessons
+                let lessons = data.schedule.filter(s => s.day == d && s.hour == h.id);
+                if(!isAll) lessons = lessons.filter(s => s.classId == filter);
+
+                row += `<td><div class="cell-wrap">`;
+                
                 if(lessons.length > 0) {
                     lessons.forEach(l => {
-                        const sub = data.subjects.find(x => x.id == l.subjectId)?.name || '?';
-                        const teach = data.teachers.find(x => x.id == l.teacherId)?.name || '?';
-                        const room = data.rooms.find(x => x.id == l.roomId)?.name || '?';
-                        rowHtml += `
-                            <div class="lesson-card" onclick="editLesson(${l.id})">
-                                <div>
-                                    <span class="lesson-time">${hour.label}</span>
-                                    <span class="lesson-subject">${sub}</span>
-                                    <div class="lesson-teacher"><i class="fas fa-user-tie"></i> ${teach}</div>
-                                </div>
-                                <div class="lesson-meta">
-                                    <span>${l.type || '-'} (${l.hoursTotal || '-'})</span>
-                                    <span><i class="fas fa-door-open"></i> ${room}</span>
-                                </div>
-                                <i class="fas fa-times lesson-action-btn" onclick="event.stopPropagation(); deleteItem('schedule', ${l.id})"></i>
-                            </div>`;
+                        const sub = data.subjects.find(x=>x.id==l.subjectId)?.name || '?';
+                        const tea = data.teachers.find(x=>x.id==l.teacherId)?.name || '?';
+                        const roo = data.rooms.find(x=>x.id==l.roomId)?.name || '?';
+                        const cls = data.classes.find(x=>x.id==l.classId)?.name || '?';
+                        
+                        const compactClass = isAll ? 'compact' : '';
+                        const badge = isAll ? `<span class="lesson-badge">${cls}</span>` : '';
+
+                        row += `
+                        <div class="lesson-card ${compactClass}" onclick="editLesson(${l.id})">
+                            ${badge}
+                            <div>
+                                <span class="lesson-subject">${sub}</span>
+                                <span class="lesson-teacher"><i class="fas fa-user-tie me-1"></i>${tea}</span>
+                            </div>
+                            <div class="lesson-room"><i class="fas fa-door-open"></i> ${roo}</div>
+                            <i class="fas fa-times lesson-delete" onclick="event.stopPropagation(); deleteItem('schedule', ${l.id})"></i>
+                        </div>`;
                     });
-                } else {
-                    rowHtml += `<div class="empty-slot" onclick="quickAdd(${day}, ${hour.id})"><i class="fas fa-plus"></i></div>`;
                 }
-                rowHtml += `</td>`;
+                
+                // Add button logic
+                // If specific class view: always show add button if empty (or small button if not empty?)
+                // If ALL view: show add button only if empty slot (to keep clean) or always small
+                if(!isAll && lessons.length === 0) {
+                    row += `<div class="empty-slot" onclick="quickAdd(${d}, ${h.id})"><i class="fas fa-plus"></i></div>`;
+                } else if (!isAll) {
+                    // row += `<div class="empty-slot small..." ...></div>` // optional: allow adding 2nd lesson
+                } else if (isAll) {
+                    // In ALL view, we allow adding via empty slot space
+                    row += `<div class="empty-slot" style="min-height:30px; font-size:1rem; opacity:0.1;" onclick="quickAdd(${d}, ${h.id})"><i class="fas fa-plus"></i></div>`;
+                }
+
+                row += `</div></td>`;
             }
-            tbody.innerHTML += rowHtml + `</tr>`;
+            row += `</tr>`;
+            tbody.innerHTML += row;
         });
     }
 
-    // --- LESSON CRUD ---
+    // --- MODAL LOGIC ---
+    function fillSelects() {
+        const fill = (id, arr) => {
+            const el = document.getElementById(id);
+            el.innerHTML = `<option value="" disabled selected>-- Wybierz --</option>` + 
+                           arr.map(x => `<option value="${x.id}">${x.name}</option>`).join('');
+        };
+        fill('lesson-class', data.classes);
+        fill('lesson-subject', data.subjects);
+        fill('lesson-teacher', data.teachers);
+        fill('lesson-room', data.rooms);
+    }
+
     function openAddLessonModal() {
-        document.getElementById('modalTitle').innerText = "Dodaj lekcję";
         document.getElementById('lesson-id').value = "";
         document.getElementById('addLessonForm').reset();
+        fillSelects();
         
-        updateSelectOptions('lesson-class', data.classes);
-        updateSelectOptions('lesson-subject', data.subjects);
-        updateSelectOptions('lesson-teacher', data.teachers);
-        updateSelectOptions('lesson-room', data.rooms);
-        
+        // Auto-select class if filter is active
         const filter = document.getElementById('schedule-class-filter').value;
-        if(filter) document.getElementById('lesson-class').value = filter;
-        
-        const m = bootstrap.Modal.getOrCreateInstance(document.getElementById('addLessonModal'));
-        m.show();
+        if(filter && filter !== 'all') document.getElementById('lesson-class').value = filter;
+
+        new bootstrap.Modal(document.getElementById('addLessonModal')).show();
     }
 
     function quickAdd(day, hour) {
@@ -351,24 +680,25 @@
     }
 
     function editLesson(id) {
-        const lesson = data.schedule.find(s => s.id == id);
-        if(!lesson) return;
-        
+        const l = data.schedule.find(s => s.id == id);
+        if(!l) return;
         openAddLessonModal();
-        document.getElementById('modalTitle').innerText = "Edytuj lekcję";
-        document.getElementById('lesson-id').value = lesson.id;
-        document.getElementById('lesson-class').value = lesson.classId;
-        document.getElementById('lesson-day').value = lesson.day;
-        document.getElementById('lesson-hour').value = lesson.hour;
-        document.getElementById('lesson-subject').value = lesson.subjectId;
-        document.getElementById('lesson-teacher').value = lesson.teacherId;
-        document.getElementById('lesson-room').value = lesson.roomId;
-        document.getElementById('lesson-type').value = lesson.type;
-        document.getElementById('lesson-hours').value = lesson.hoursTotal;
+        fillSelects(); // ensure selects are populated
+        
+        document.getElementById('modalTitle').innerText = "Edycja Lekcji";
+        document.getElementById('lesson-id').value = l.id;
+        document.getElementById('lesson-class').value = l.classId;
+        document.getElementById('lesson-day').value = l.day;
+        document.getElementById('lesson-hour').value = l.hour;
+        document.getElementById('lesson-subject').value = l.subjectId;
+        document.getElementById('lesson-teacher').value = l.teacherId;
+        document.getElementById('lesson-room').value = l.roomId;
+        document.getElementById('lesson-type').value = l.type || 'Wykład';
+        document.getElementById('lesson-hours').value = l.hoursTotal || '';
     }
 
     async function saveLesson() {
-        const formData = {
+        const fd = {
             id: document.getElementById('lesson-id').value,
             classId: document.getElementById('lesson-class').value,
             day: document.getElementById('lesson-day').value,
@@ -380,36 +710,30 @@
             hoursTotal: document.getElementById('lesson-hours').value
         };
 
-        if(!formData.classId || !formData.subjectId) { alert("Wypełnij wymagane pola!"); return; }
+        if(!fd.classId || !fd.subjectId) return alert("Wybierz Klasę i Przedmiot!");
 
-        // Conflict Checks
-        const teacherBusy = data.schedule.find(s => s.teacherId == formData.teacherId && s.day == formData.day && s.hour == formData.hour && s.id != formData.id);
-        const roomBusy = data.schedule.find(s => s.roomId == formData.roomId && s.day == formData.day && s.hour == formData.hour && s.id != formData.id);
+        // Simple conflict check
+        const tBusy = data.schedule.find(s => s.teacherId == fd.teacherId && s.day == fd.day && s.hour == fd.hour && s.id != fd.id);
+        const rBusy = data.schedule.find(s => s.roomId == fd.roomId && s.day == fd.day && s.hour == fd.hour && s.id != fd.id);
         
-        let warnings = [];
-        if(teacherBusy) warnings.push("Nauczyciel jest zajęty.");
-        if(roomBusy) warnings.push("Sala jest zajęta.");
-        
-        if(warnings.length > 0 && !confirm(warnings.join("\n") + "\nZapisać mimo to?")) return;
+        let warn = [];
+        if(tBusy) warn.push("⚠️ Ten nauczyciel ma już lekcję w tym czasie!");
+        if(rBusy) warn.push("⚠️ Ta sala jest zajęta w tym czasie!");
 
-        try {
-            const res = await fetch('api.php?action=save_lesson', {
-                method: 'POST',
-                body: JSON.stringify(formData)
-            });
-            await loadData();
-            bootstrap.Modal.getInstance(document.getElementById('addLessonModal')).hide();
-            
-            // Auto switch view to the edited class
-            document.getElementById('schedule-class-filter').value = formData.classId;
-            renderSchedule();
-            
-        } catch(e) { console.error(e); }
+        if(warn.length > 0) {
+            if(!confirm(warn.join("\n") + "\n\nCzy na pewno zapisać?")) return;
+        }
+
+        await fetch('api.php?action=save_lesson', { method: 'POST', body: JSON.stringify(fd) });
+        bootstrap.Modal.getInstance(document.getElementById('addLessonModal')).hide();
+        loadData();
     }
 
-    document.getElementById("menu-toggle").onclick = (e) => { e.preventDefault(); document.getElementById("wrapper").classList.toggle("toggled"); };
-    window.onload = loadData;
-
+    // Toggle Sidebar
+    document.getElementById("menu-toggle").onclick = (e) => {
+        e.preventDefault();
+        document.getElementById("wrapper").classList.toggle("toggled");
+    };
 </script>
 </body>
 </html>
